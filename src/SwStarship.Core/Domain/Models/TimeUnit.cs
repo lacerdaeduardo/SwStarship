@@ -2,6 +2,8 @@
 {
     public enum TimeUnit
     {
+        Hour = 24,
+        Hours = Hour,
         Day = 1,
         Days = Day,
         Week = 7,
@@ -9,6 +11,7 @@
         Month = 30,
         Months = Month,
         Year = 365,
-        Years = Year
+        Years = Year,
+        Unknown = 0
     }
 }

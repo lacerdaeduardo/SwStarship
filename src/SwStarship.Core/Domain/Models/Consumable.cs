@@ -6,7 +6,7 @@ namespace SwStarship.Core.Domain.Models
 {
     public sealed class Consumable
     {
-        public int Quantity { get; set; }
+        public double Quantity { get; set; }
         public TimeUnit TimeUnit { get; set; }
 
         private Consumable() { }
@@ -14,33 +14,67 @@ namespace SwStarship.Core.Domain.Models
         public static Consumable Parse(string input)
         {
             if (!ValidateInput(input))
+            {
                 throw new ArgumentException($"Provided consumable {input} is not valid.");
+            }
+
+            Consumable instance = new Consumable();
+
+            if (IsUnknown(input))
+            {
+                instance.Quantity = 0;
+                instance.TimeUnit = TimeUnit.Unknown;
+
+                return instance;
+            }
 
             var splitedInput = input.Split(' ');
-            Consumable instance = new Consumable();
             instance.Quantity = int.Parse(splitedInput[0]);
             instance.TimeUnit = Enums.Parse<TimeUnit>(splitedInput[1], ignoreCase: true, EnumFormat.Name);
 
             return instance;
         }
 
-        public int TimeUnitToDays()
+
+        /// <summary>
+        /// Get the equivalent quantity/time for one day
+        /// </summary>
+        /// <returns></returns>
+        public double ConvertTimeUnitToDays()
         {
-            return Quantity * (int) this.TimeUnit;
+            return this.TimeUnit == TimeUnit.Hour ?
+                CalculateByHourFormula() :
+                CalculateByDefaultFormula();
+        }
+
+        private double CalculateByHourFormula()
+        {
+            return Quantity / (int)TimeUnit.Hour;
+        }
+
+        private double CalculateByDefaultFormula()
+        {
+            return Quantity * (int)this.TimeUnit;
         }
 
 
         /// <summary>
-        /// Check if string input is contains two word phrase with a digit and a time unit between 
+        /// Check if string input is contains two word phrase with a digit and a time unit between or the word unknown
         /// day(s), week(s), month(s), year(s)
         /// </summary>        
         /// <param name="consumable"></param>
         /// <returns>true of false</returns>
         public static bool ValidateInput(string consumable)
         {
-            Regex regex = new Regex(@"^\d*\s(\w*year(s)?|\w*month(s)?\w*|\w*week(s)?\w*|\w*day(s)?\w*)$", RegexOptions.IgnoreCase);
+            bool isValidString = new Regex(@"^\d*\s(year(s)?|month(s)?|week(s)?|day(s)?|hour(s)?)$",
+                                           RegexOptions.IgnoreCase).IsMatch(consumable);
 
-            return regex.IsMatch(consumable);
+            return isValidString || IsUnknown(consumable);
+        }
+
+        private static bool IsUnknown(string consumable)
+        {
+            return "unknown".Equals(consumable, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

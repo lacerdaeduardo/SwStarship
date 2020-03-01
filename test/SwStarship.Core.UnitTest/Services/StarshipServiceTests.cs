@@ -59,7 +59,7 @@ namespace SwStarship.Core.UnitTest.Services
             response.Should().NotBeEmpty().And.HaveCount(mockedData.Count());
             
             response.All(x => x.Starship != null).Should().BeTrue();
-            response.All(x => x.NumberOfStops >= 0).Should().BeTrue();
+            response.All(x => !x.NumberOfStops.HasValue || x.NumberOfStops >= 0).Should().BeTrue();
             response.All(x => x.Distance == distance).Should().BeTrue();
 
             _swApiClient.Verify(x => x.GetStarshipsAsync(), Times.Once);

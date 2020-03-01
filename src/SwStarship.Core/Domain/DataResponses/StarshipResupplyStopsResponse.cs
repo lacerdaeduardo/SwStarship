@@ -5,6 +5,6 @@ namespace SwStarship.Core.Domain.DataResponses
     {
         public Starship Starship { get; set; }
         public int Distance { get; set; }
-        public int NumberOfStops { get; set; }
+        public int? NumberOfStops { get; set; }
     }
 }

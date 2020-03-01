@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SwStarship.Core.Services
 {
-    public class StarshipService
+    public class StarshipService : IStarshipService
     {
         private readonly ISwApiClient _swApiClient;
         private readonly SupplyStopCalculator _supplyStopCalculator;
@@ -43,7 +43,7 @@ namespace SwStarship.Core.Services
             starships.ToList().ForEach(starship =>
             {
                 var consumable = Consumable.Parse(starship.Consumables);
-                var numberOfStops = _supplyStopCalculator.CalculateNumberOfStops(distance, starship.GetDailyMGLT(), consumable.TimeUnitToDays());
+                var numberOfStops = _supplyStopCalculator.CalculateNumberOfStops(distance, starship.GetDailyMGLT(), consumable.ConvertTimeUnitToDays());
 
                 response.Add(new StarshipResupplyStopsResponse()
                 {

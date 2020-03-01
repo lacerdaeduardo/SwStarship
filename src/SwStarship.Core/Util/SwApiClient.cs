@@ -28,20 +28,19 @@ namespace SwStarship.Core.Util
 
             var starshipRequest = new RestRequest(_starshipEndpoint, DataFormat.Json);
 
-            bool isNextPageAvailable = true;
-
-            while (isNextPageAvailable)
+            while (starshipRequest != null)
             {
-                var getResponse = await _restClient.ExecuteGetAsync<PagedList<Starship>>(starshipRequest);                
-                if (HttpStatusCode.OK.Equals(getResponse.StatusCode))
-                {                    
-                    starships.AddRange(getResponse.Data.Results);
-                    isNextPageAvailable = !string.IsNullOrEmpty(getResponse.Data.Next);                    
-                }
-                else
+                var getResponse = await _restClient.ExecuteGetAsync<PagedList<Starship>>(starshipRequest);
+                
+                if (!HttpStatusCode.OK.Equals(getResponse.StatusCode))
                 {
-                    isNextPageAvailable = false;
-                }                        
+                    break;
+                }
+
+                starships.AddRange(getResponse.Data.Results);
+                starshipRequest = !string.IsNullOrEmpty(getResponse.Data.Next) ?
+                                    new RestRequest(getResponse.Data.Next, DataFormat.Json) :
+                                    null;
             }
 
             return starships;
