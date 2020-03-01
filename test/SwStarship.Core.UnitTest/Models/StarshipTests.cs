@@ -6,21 +6,16 @@ namespace SwStarship.Core.UnitTest.Models
 {
     public class StarshipTests
     {
-        [Fact]
-        public void ExpectGetCorrectDailyMGLT()
+        [Theory]
+        [InlineData("Mocked Starship", "3 years", 10, 10 * 24)]
+        [InlineData("Mocked Starship2", "3 years", 5, 5 * 24)]
+        [InlineData("Mocked Starship3", "3 years", 33, 33 * 24)]
+        [InlineData("Mocked Starship4", "3 years", 250, 250 * 24)]
+        public void ExpectGetCorrectDailyMGLT(string name, string consumables, int mglt, int expectedResult)
         {
-            int initialMGLT = 10;
-            int hoursInDay = 24;
+            Starship starship = new Starship() { Name = name, Consumables = consumables, MGLT = mglt };
 
-            Starship starship = new Starship()
-            {
-                Name = "Mocked Starship",
-                Consumables = "3 years",
-                MGLT = 10
-            };
-
-            starship.GetDailyMGLT().Should().Be(initialMGLT * hoursInDay);
+            starship.GetDailyMGLT().Should().Be(expectedResult);
         }
-
     }
 }

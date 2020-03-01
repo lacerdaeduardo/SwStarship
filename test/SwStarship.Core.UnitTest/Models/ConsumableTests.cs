@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit;
 using SwStarship.Core.Domain.Models;
+using System;
 
 namespace SwStarship.Core.UnitTest.Models
 {
@@ -66,6 +67,16 @@ namespace SwStarship.Core.UnitTest.Models
             int daysResult = consumable.TimeUnitToDays();
 
             daysResult.Should().Be(expectedDays);
+        }
+
+        [Theory]
+        [InlineData("0 random")]
+        [InlineData("-10 noValidUnit")]
+        public void ExpectValidateAnWrongConsumableInput(string consumableInput)
+        {
+            Exception ex = Assert.Throws<ArgumentException>(() => Consumable.Parse(consumableInput));
+            ex.Message.Should().Be($"Provided consumable {consumableInput} is not valid.");
+            ex.Should().BeOfType<ArgumentException>();
         }
     }
 }

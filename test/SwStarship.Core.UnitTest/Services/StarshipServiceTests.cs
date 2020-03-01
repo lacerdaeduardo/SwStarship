@@ -6,46 +6,63 @@ using System.Linq;
 using SwStarship.Core.Interfaces;
 using System.Collections.Generic;
 using SwStarship.Core.Domain.Models;
+using SwStarship.Core.Util;
+using SwStarship.Core.Domain.DataResponses;
 
 namespace SwStarship.Core.UnitTest.Services
 {
-    public class StarshipServiceTests
+    public class StarshipServiceTests : IClassFixture<DataFixture>
     {
         private readonly Mock<ISwApiClient> _swApiClient;
+        private readonly Mock<SupplyStopCalculator> _calculator;
+        private readonly DataFixture _fixture;
 
         #region Setup
-        public StarshipServiceTests()
+        public StarshipServiceTests(DataFixture fixture)
         {
+            _fixture = fixture;
+
             var mockedClient = new Mock<ISwApiClient>();
-            mockedClient.Setup(x => x.GetStarshipsAsync()).ReturnsAsync(MockedData());
+            var mockedCalculator = new Mock<SupplyStopCalculator>();
 
             _swApiClient = mockedClient;
+            _calculator = mockedCalculator;
+
         }
 
-        private static IEnumerable<Starship> MockedData()
-        {
-            return new List<Starship>()
-            {
-                new Starship(){ Name = "Death Star", Consumables = "7 days", MGLT = 10 },
-                new Starship(){ Name = "Death Star", Consumables = "7 days", MGLT = 10 },
-                new Starship(){ Name = "Death Star", Consumables = "7 days", MGLT = 10 }
-            };
-        }
+
         #endregion
 
         [Fact]
         public async void ShouldRetrieveStarships()
         {
-            // Arrange
-            var mockedData = MockedData();
-            StarshipService starshipService = new StarshipService(_swApiClient.Object);
+            var mockedData = _fixture.MockedData();
+            _swApiClient.Setup(x => x.GetStarshipsAsync()).ReturnsAsync(mockedData);
+            var _starshipService = new StarshipService(_swApiClient.Object, _calculator.Object);
 
-            // Act
-            IEnumerable<Starship> starships = await starshipService.GetAsync();
+            IEnumerable<Starship> starships = await _starshipService.GetAsync();
             
-            //Assert
             starships.Should().NotBeEmpty().And.HaveCount(mockedData.Count());            
             _swApiClient.Verify(x => x.GetStarshipsAsync(), Times.Once);
         }        
+        
+        [Fact]        
+        public async void ExpectRetrieveAllStarshipsAndItsNumberOfStops()
+        {
+            int distance = 100000;
+            var mockedData = _fixture.MockedData();
+            _swApiClient.Setup(x => x.GetStarshipsAsync()).ReturnsAsync(mockedData);
+            var _starshipService = new StarshipService(_swApiClient.Object, _calculator.Object);
+
+            IEnumerable<StarshipResupplyStopsResponse> response = await _starshipService.ProcessAllStarshipsTotalResupplyStopsAsync(distance);
+
+            response.Should().NotBeEmpty().And.HaveCount(mockedData.Count());
+            
+            response.All(x => x.Starship != null).Should().BeTrue();
+            response.All(x => x.NumberOfStops >= 0).Should().BeTrue();
+            response.All(x => x.Distance == distance).Should().BeTrue();
+
+            _swApiClient.Verify(x => x.GetStarshipsAsync(), Times.Once);
+        }
     }
 }
