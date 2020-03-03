@@ -50,8 +50,6 @@ namespace SwStarship.App
 
                     Console.WriteLine($"Starship: {ss.Starship.Name}, Number of stops to resupply until reach the destination: {stopsOutput}");
                 });
-
-                AskTryAgain();
             }
             else
             {
